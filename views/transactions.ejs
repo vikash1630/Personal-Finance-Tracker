@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Finance Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+  </style>
+</head>
+
+<body class="bg-zinc-900 text-white flex items-center justify-center">
+  <div class="w-full max-w-4xl p-6">
+    <h1 class="text-3xl font-bold mb-6 text-center text-gradient bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">
+      Finance Tracker
+    </h1>
+    <h1 class="text-3xl font-bold mb-6 text-center text-gradient bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 bg-clip-text text-transparent">Total Amount Spent : <%= totalAmount%></h1>
+
+    <div class="overflow-x-auto rounded-lg shadow-lg">
+      
+      <table class="min-w-full table-auto border-collapse bg-zinc-800">
+        <thead class="bg-zinc-700 text-white">
+          <tr>
+            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Delete</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Date</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Amount</th>
+            <th class="px-6 py-3 text-left text-sm font-semibold uppercase tracking-wider">Description</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% transactions.forEach(val => { %>
+            <tr class="hover:bg-zinc-600 transition duration-200 ease-in-out">
+              <td class="px-6 py-4 border-b border-zinc-700 text-white">
+                <form action="delete/<%= val._id%>" method="post">
+                  <input class="text-red-400 cursor-pointer" name="delete" type="submit" value="delete">
+                </form>
+              </td>
+              <td class="px-6 py-4 border-b border-zinc-700 text-white"><%= val.transaction.date %></td>
+              <td class="px-6 py-4 border-b border-zinc-700 font-semibold text-green-400">₹<%= val.transaction.amount %></td>
+              <td class="px-6 py-4 border-b border-zinc-700 text-white"><%= val.transaction.description %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>
