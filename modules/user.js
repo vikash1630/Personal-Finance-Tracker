@@ -1,11 +1,10 @@
-const mongoose = require('mongoose');
-mongoose.connect(`mongodb://127.0.0.1:27017/FinanceTrackingUsers`);
+const mongoose = require("mongoose");
 
-const userSchema = mongoose.Schema({
+const userSchema = new mongoose.Schema({
     name: String,
-    email: String,
+    email: { type: String, unique: true },
     password: String,
     age: Number
-})
+});
 
-module.exports = mongoose.model('user',userSchema)
+module.exports = mongoose.model("User", userSchema);

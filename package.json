@@ -4,10 +4,10 @@
   "description": "",
   "main": "app.js",
   "scripts": {
-  "build:css": "tailwindcss -i ./styles/tailwind.css -o ./public/css/output.css --minify",
-  "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node app.js",
+    "build:css": "tailwindcss -i ./styles/tailwind.css -o ./public/css/output.css --minify",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-
   "keywords": [],
   "author": "",
   "license": "ISC",
@@ -15,6 +15,7 @@
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -24,5 +25,8 @@
     "autoprefixer": "^10.4.21",
     "postcss": "^8.5.6",
     "tailwindcss": "^4.1.13"
+  },
+  "engines": {
+    "node": "18.x"
   }
 }
