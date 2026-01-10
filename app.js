@@ -1,6 +1,5 @@
 require("dotenv").config();
 const express = require("express");
-app.set("trust proxy", 1);
 const mongoose = require("mongoose");
 const path = require("path");
 const bcrypt = require("bcrypt");
@@ -13,7 +12,7 @@ const userModel = require("./modules/user");
 const transactionModel = require("./modules/transaction");
 
 const app = express();
-
+app.set("trust proxy", 1);
 // ----------------------
 // MIDDLEWARE
 // ----------------------
