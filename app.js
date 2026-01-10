@@ -16,14 +16,12 @@ const app = express();
 // ----------------------
 // MIDDLEWARE
 // ----------------------
-
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,       // MUST set in .env
+    origin: process.env.CLIENT_URL || "*",
     credentials: true,
   })
 );
-
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -31,9 +29,8 @@ app.set("view engine", "ejs");
 app.use(express.static(path.join(__dirname, "public")));
 
 // ----------------------
-// DATABASE
+// DATABASE CONNECT
 // ----------------------
-
 mongoose
   .connect(process.env.MONGO_URL)
   .then(() => console.log("🔥 MongoDB Connected"))
@@ -42,17 +39,16 @@ mongoose
 // ----------------------
 // AUTH MIDDLEWARE
 // ----------------------
-
 function userVerify(req, res, next) {
   const token = req.cookies.token;
-  if (!token) return res.status(401).send("Access Denied");
+  if (!token) return res.send("Access Denied !!!");
 
   try {
     const user = jwt.verify(token, process.env.JWT_SECRET);
     req.user = user;
     next();
-  } catch {
-    return res.status(403).send("Invalid or Expired Token");
+  } catch (err) {
+    res.send("Invalid Token");
   }
 }
 
@@ -83,25 +79,27 @@ app.post("/created", async (req, res) => {
 
 // LOGIN
 app.post("/loggedin", async (req, res) => {
-  const { email, password } = req.body;
+  let { email, password } = req.body;
 
-  const user = await userModel.findOne({ email });
+  let user = await userModel.findOne({ email });
   if (!user) return res.send("User Does Not Exist");
 
-  const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.send("Incorrect Password");
+  const result = await bcrypt.compare(password, user.password);
 
-  const token = jwt.sign(
-    { email: user.email },        // Keep payload small for security
+  if (!result) return res.send("Incorrect Password");
+
+  let token = jwt.sign(
+    { email: user.email, name: user.name, age: user.age },
     process.env.JWT_SECRET,
     { expiresIn: "7d" }
   );
 
+  // *** PRODUCTION COOKIE FIX ***
   res.cookie("token", token, {
     httpOnly: true,
-    secure: true,                // IMPORTANT: Requires HTTPS in production
-    sameSite: "none",            // Allows cross-site cookie for frontend
-    maxAge: 7 * 24 * 60 * 60 * 1000,
+    secure: true,      // requires https
+    sameSite: "none",  // required for cross-site cookies (Render + frontend)
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
   res.redirect("/profile");
@@ -109,19 +107,21 @@ app.post("/loggedin", async (req, res) => {
 
 // LOGOUT
 app.post("/loggedout", (req, res) => {
+  // *** PRODUCTION COOKIE FIX ***
   res.cookie("token", "", {
     httpOnly: true,
     secure: true,
     sameSite: "none",
     expires: new Date(0),
   });
+
   res.redirect("/");
 });
 
 // PROFILE
 app.get("/profile", userVerify, (req, res) => {
-  const { email } = req.user;
-  res.render("profile", { email });
+  const { email, name, age } = req.user;
+  res.render("profile", { email, name, age });
 });
 
 // ADD TRANSACTION
@@ -132,8 +132,8 @@ app.post("/TransactionAdded", async (req, res) => {
   if (!token) return res.status(401).send("You Don't Have Access");
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decoded.email;
+    const decodedData = jwt.verify(token, process.env.JWT_SECRET);
+    const email = decodedData.email;
 
     if (!amount || amount <= 0 || !description)
       return res.send("Transaction Field Empty");
@@ -144,8 +144,8 @@ app.post("/TransactionAdded", async (req, res) => {
     });
 
     res.redirect("/profile");
-  } catch {
-    res.status(403).send("Invalid or expired token");
+  } catch (err) {
+    res.send("Invalid or expired token");
   }
 });
 
@@ -160,8 +160,8 @@ app.get("/transactions", async (req, res) => {
     );
 
     res.render("transactions", { transactions, totalAmount });
-  } catch {
-    res.status(500).send("Server error");
+  } catch (err) {
+    res.send("Server error");
   }
 });
 
@@ -170,15 +170,14 @@ app.post("/delete/:transaction_id", async (req, res) => {
   try {
     await transactionModel.findByIdAndDelete(req.params.transaction_id);
     res.redirect("/transactions");
-  } catch {
+  } catch (err) {
     res.send("Something Went Wrong");
   }
 });
 
 // ----------------------
-// START SERVE
+// START SERVER
 // ----------------------
-
 app.listen(process.env.PORT || 3000, () =>
-  console.log(`🚀 Server Running on PORT ${process.env.PORT || 3000}`)
+  console.log("🚀 Server Running on PORT", process.env.PORT || 3000)
 );
